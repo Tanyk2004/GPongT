@@ -16,6 +16,7 @@ BLACK = (0, 0, 0)
 # Paddle settings
 PADDLE_WIDTH, PADDLE_HEIGHT = 15, 100
 paddle_speed = 5
+ai_speed = 4
 
 # Ball settings
 BALL_SIZE = 15
@@ -33,16 +34,18 @@ while True:
             pygame.quit()
             sys.exit()
 
-    # Movement
+    # Player Movement
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_w] and left_paddle.top > 0:
-        left_paddle.y -= paddle_speed
-    if keys[pygame.K_s] and left_paddle.bottom < HEIGHT:
-        left_paddle.y += paddle_speed
     if keys[pygame.K_UP] and right_paddle.top > 0:
         right_paddle.y -= paddle_speed
     if keys[pygame.K_DOWN] and right_paddle.bottom < HEIGHT:
         right_paddle.y += paddle_speed
+
+    # AI Movement
+    if left_paddle.centery < ball.centery and left_paddle.bottom < HEIGHT:
+        left_paddle.y += ai_speed
+    if left_paddle.centery > ball.centery and left_paddle.top > 0:
+        left_paddle.y -= ai_speed
 
     # Ball movement
     ball.x += ball_speed_x
