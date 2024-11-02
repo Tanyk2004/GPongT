@@ -21,6 +21,7 @@ ai_speed = 4
 # Ball settings
 BALL_SIZE = 15
 ball_speed_x, ball_speed_y = 3, 3
+speed_increase_factor = 0.1
 
 # Create paddles and ball
 left_paddle = pygame.Rect(30, (HEIGHT - PADDLE_HEIGHT) // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
