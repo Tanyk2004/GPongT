@@ -36,37 +36,32 @@ winning_score = 5  # Set a winning score
 # Frame counter for speed increase
 frame_count = 0
 
-# Game loop
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-
-    # Player movement
+# functions for control
+def check_player_movement():
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w] and left_paddle.top > 0:
         left_paddle.y -= paddle_speed
     if keys[pygame.K_s] and left_paddle.bottom < HEIGHT:
         left_paddle.y += paddle_speed
 
+def ai_movement():
     # AI Movement
     if right_paddle.centery < ball.centery and right_paddle.bottom < HEIGHT:
         right_paddle.y += paddle_speed
     if right_paddle.centery > ball.centery and right_paddle.top > 0:
         right_paddle.y -= paddle_speed
 
-    # Ball movement
-    ball.x += ball_speed_x
-    ball.y += ball_speed_y
-
+def check_collisions():
+    global ball_speed_y, ball_speed_x, right_score, left_score
     # Ball collision with top and bottom
     if ball.top <= 0 or ball.bottom >= HEIGHT:
         ball_speed_y = -ball_speed_y
+        increase_speed()
 
     # Ball collision with paddles
     if ball.colliderect(left_paddle) or ball.colliderect(right_paddle):
         ball_speed_x = -ball_speed_x
+        increase_speed()
 
     # Ball reset if it goes out of bounds
     if ball.left <= 0:
@@ -76,6 +71,7 @@ while True:
         left_score += 1
         ball.x, ball.y = WIDTH // 2, HEIGHT // 2
 
+def check_win():
     # Check for winning condition
     if left_score >= winning_score:
         print("Left Player Wins!")
@@ -86,11 +82,27 @@ while True:
         pygame.quit()
         sys.exit()
 
-    # Increase ball speed over time
-    frame_count += 1
-    if frame_count % increase_interval == 0:
-        ball_speed_x += speed_increase_factor
-        ball_speed_y += speed_increase_factor
+def increase_speed():
+    global ball_speed_x, ball_speed_y
+    ball_speed_x += speed_increase_factor
+    ball_speed_y += speed_increase_factor
+
+# Game loop
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    check_player_movement()
+
+    ai_movement()
+    # Ball movement
+    ball.x += ball_speed_x # type:ignore
+    ball.y += ball_speed_y # type:ignore
+
+    check_collisions()
+    check_win()
 
     # Drawing
     screen.fill(BLACK)
