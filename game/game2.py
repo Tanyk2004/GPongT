@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 
 # Initialize Pygame
 pygame.init()
@@ -20,8 +21,8 @@ paddle_speed = 5
 # Ball settings
 BALL_SIZE = 15
 ball_speed_x, ball_speed_y = 3, 3
-speed_increase_factor = 0.8  # Amount to increase speed each frame
-increase_interval = 100  # Increase speed every 300 frames (5 seconds at 60 FPS)
+speed_increase_factor = 0.5  # Amount to increase speed each collision
+max_ball_speed = 7           # Maximum speed cap for the ball
 
 # Create paddles and ball
 left_paddle = pygame.Rect(30, (HEIGHT - PADDLE_HEIGHT) // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
@@ -32,9 +33,6 @@ ball = pygame.Rect(WIDTH // 2, HEIGHT // 2, BALL_SIZE, BALL_SIZE)
 left_score = 0
 right_score = 0
 winning_score = 5  # Set a winning score
-
-# Frame counter for speed increase
-frame_count = 0
 
 # functions for control
 def check_player_movement():
@@ -56,7 +54,6 @@ def check_collisions():
     # Ball collision with top and bottom
     if ball.top <= 0 or ball.bottom >= HEIGHT:
         ball_speed_y = -ball_speed_y
-        increase_speed()
 
     # Ball collision with paddles
     if ball.colliderect(left_paddle) or ball.colliderect(right_paddle):
@@ -66,10 +63,10 @@ def check_collisions():
     # Ball reset if it goes out of bounds
     if ball.left <= 0:
         right_score += 1
-        ball.x, ball.y = WIDTH // 2, HEIGHT // 2
+        reset_ball()
     elif ball.right >= WIDTH:
         left_score += 1
-        ball.x, ball.y = WIDTH // 2, HEIGHT // 2
+        reset_ball()
 
 def check_win():
     # Check for winning condition
@@ -84,8 +81,17 @@ def check_win():
 
 def increase_speed():
     global ball_speed_x, ball_speed_y
-    ball_speed_x += speed_increase_factor
-    ball_speed_y += speed_increase_factor
+    if abs(ball_speed_x) < max_ball_speed:
+        ball_speed_x += speed_increase_factor * (1 if ball_speed_x > 0 else -1)
+    if abs(ball_speed_y) < max_ball_speed:
+        ball_speed_y += speed_increase_factor * (1 if ball_speed_y > 0 else -1)
+
+def reset_ball():
+    global ball_speed_x, ball_speed_y
+    ball.x, ball.y = WIDTH // 2, HEIGHT // 2
+    # Reset speed with a random direction
+    ball_speed_x = 3 * random.choice((1, -1))
+    ball_speed_y = 3 * random.choice((1, -1))
 
 # Game loop
 while True:
@@ -95,11 +101,11 @@ while True:
             sys.exit()
 
     check_player_movement()
-
     ai_movement()
+    
     # Ball movement
-    ball.x += ball_speed_x # type:ignore
-    ball.y += ball_speed_y # type:ignore
+    ball.x += ball_speed_x
+    ball.y += ball_speed_y
 
     check_collisions()
     check_win()
@@ -118,4 +124,3 @@ while True:
 
     pygame.display.flip()
     pygame.time.Clock().tick(60)
-
