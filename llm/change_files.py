@@ -87,7 +87,9 @@ def append_to_python_file(content: str, file_name: str = "output.py"):
     try:
         with open(file_name, "a") as file:
             file.write(content)
+            file.close()
         print(f"Content successfully appended to {file_name}")
+
     except Exception as e:
         print(f"An error occurred: {e}")
 

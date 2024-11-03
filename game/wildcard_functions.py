@@ -2,6 +2,7 @@ import importlib
 import os
 import inspect
 import game.globals
+import sys
 
 def wildcard_function(*functions): 
     for function in functions:
@@ -19,11 +20,14 @@ def load_and_execute_functions(module_name):
         List[function]: A list of functions loaded from the specified module.
     """
     # Dynamically import the module
+    if module_name in sys.modules:
+        del sys.modules[module_name]
+
     module = importlib.import_module(module_name)
     
     # Get all functions defined in the module
     functions = [func for name, func in inspect.getmembers(module, inspect.isfunction)]
-    
+    print("Functions Loaded just now are: ", functions)
     return functions
 
 

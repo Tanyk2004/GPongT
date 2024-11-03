@@ -45,7 +45,8 @@ Include necessary imports for any modules not in the standard Python library.
 At the end of the code, add a concise summary of the changes following this format:
 python
 
-When you include comments make sure they begin with a # 
+When you include comments make sure each line begins with a # 
+Do not have any lines THAT ARE NOT CODE that do not begin with a #
 
 Here are a few tips on what is a good improvement:
 Do not instantiate new objects based on a random number generator

@@ -14,10 +14,10 @@ class GameClass:
     WIDTH, HEIGHT = 800, 600
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
-    GRAY = (90, 90, 90)
-    RED = (255, 0, 0)
-    GREEN = (0, 255, 0)
+    GRAY = (128, 128, 128)
     BALL_COLOR = (190,190,190)
+    RED = (255, 0 ,0)
+    GREEN = (0, 255, 0)
     
     PADDLE_WIDTH, PADDLE_HEIGHT = 15, 100
     BALL_SIZE = 15
@@ -47,7 +47,7 @@ class GameClass:
         self.current_text = ""
         self.paddle_color = GameClass.WHITE
         self.ball_color = GameClass.BALL_COLOR
-
+        self.current_file_number = 0
     # functions for control
     def check_player_movement(self):
         keys = pygame.key.get_pressed()
@@ -91,8 +91,11 @@ class GameClass:
         
         if (point_scored):
             self.reset_ball()
-            #this might be asynch, what do?
+            
+            if self.check_win():
+                return True
             self.llm_call()
+        return False
 
     # TODO: refactor by putting this into the gpt_api class
     def llm_call(self):
@@ -106,11 +109,11 @@ class GameClass:
         user_prompt = read_file("./llm/user_prompt.txt")
 
         resp = GPT().text_completion(system_prompt=prompt, user_prompt=user_prompt)
-        print(resp)
         new_resp = ""
         for line in resp.split("\n"):
             if '```' not in line:
                 new_resp += line + "\n"
+        
         new_resp = "\n" + new_resp
         append_to_python_file(new_resp, "game/gpt_generated_dynamic.py")
         try:
@@ -130,7 +133,7 @@ class GameClass:
         current_line = ""
         for word in words:
             test_line = current_line + " " + word
-            text_surface = font.render(test_line, True, GameClass.GRAY)
+            text_surface = font.render(test_line, True, GameClass.BALL_COLOR)
             if text_surface.get_width() < max_width:
                 current_line = test_line
             else:
@@ -140,37 +143,43 @@ class GameClass:
 
         y_offset = GameClass.HEIGHT - 60 - (len(lines) - 1) * 24
         for line in lines:
-            text = font.render(line, True, GameClass.WHITE)
+            text = font.render(line, True, GameClass.BALL_COLOR)
             self.screen.blit(text, (GameClass.WIDTH // 2 - text.get_width() // 2, y_offset))
             y_offset += 24
         pygame.display.flip()
 
     def display_win_loss(self, left_score, right_score):
-        pygame.draw.rect(self.screen, self.paddle_color, self.left_paddle)
-        pygame.draw.rect(self.screen, self.paddle_color, self.right_paddle)
-        pygame.draw.ellipse(self.screen, self.ball_color, self.ball)
+        # Clear the screen with a blank color
+        self.screen.fill(GameClass.BLACK)
+
+        # Determine the win/loss message
         font = pygame.font.Font(None, 60)
         if left_score > right_score:
             score_text = "You Lose!"
             text = font.render(score_text, True, GameClass.RED)
         else:
-            score_text = "You Win"
+            score_text = "You Win!"
             text = font.render(score_text, True, GameClass.GREEN)
+
+        # Draw the message at the center of the screen
         self.screen.blit(text, (GameClass.WIDTH // 2 - text.get_width() // 2, GameClass.HEIGHT // 2 - text.get_height() // 2))
+
+        # Update the display
+        pygame.display.flip()
+        pygame.time.delay(3000)  # Show the message for 3 seconds
 
     def check_win(self):
         # Check for winning condition
         if self.left_score >= self.winning_score:
             print("Left Player Wins!")
             self.display_win_loss(self.left_score, self.right_score)
-            time.sleep(5)
-            pygame.quit()
-            sys.exit()
+            time.sleep(3)
+            return True
         elif self.right_score >= self.winning_score:
             self.display_win_loss(self.left_score, self.right_score)
-            time.sleep(5)
-            pygame.quit()
-            sys.exit()
+            time.sleep(3)
+            return True
+        return False
 
     def increase_speed(self):
         if abs(game.globals.ball_speed_x) < game.globals.max_ball_speed:
@@ -202,7 +211,7 @@ class GameClass:
                 try:
                     function(self)
                 except Exception as e:
-                    self.functions.remove(function)
+                    pass
 
             self.check_player_movement()
             self.ai_movement()
@@ -210,13 +219,6 @@ class GameClass:
             # Ball movement
             self.ball.x += self.direction[0] * abs(game.globals.ball_speed_x)
             self.ball.y += self.direction[1] *abs(game.globals.ball_speed_y)
-
-            print("Left Paddle Height: ", self.left_paddle.height)
-            print("Right Paddle Height: ", self.right_paddle.height)
-            print("Ball Speed X: ", game.globals.ball_speed_x)
-            print("Ball Speed Y: ", game.globals.ball_speed_y)
-            print("Paddle Speed: ", game.globals.paddle_speed)
-            print("Obstacles: ", self.game_obstacles)   
 
             # Drawing
             self.screen.blit(background, (0, 0))
@@ -229,8 +231,8 @@ class GameClass:
                 
                 elif obstacle is not None:
                     pygame.draw.ellipse(self.screen, GameClass.WHITE, obstacle)
-            self.check_collisions()
-            self.check_win()
+            if (self.check_collisions()):
+                break
 
             # Display scores
             font = pygame.font.Font(None, 36)
@@ -241,3 +243,5 @@ class GameClass:
 
             pygame.display.flip()
             pygame.time.Clock().tick(60)
+        pygame.quit()
+        sys.exit()
