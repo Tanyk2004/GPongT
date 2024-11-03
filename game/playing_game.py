@@ -34,6 +34,9 @@ left_score = 0
 right_score = 0
 winning_score = 5  # Set a winning score
 
+# set up dynamic mechanics
+dynamic_fns = []
+
 # functions for control
 def check_player_movement():
     keys = pygame.key.get_pressed()
@@ -96,7 +99,38 @@ def reset_ball():
     # Reset speed with a random direction
     ball_speed_x = 3 * random.choice((1, -1))
     ball_speed_y = 3 * random.choice((1, -1))
+    
+def updateScreen():
+    # Drawing
+    screen.fill(BLACK)
+    pygame.draw.rect(screen, WHITE, left_paddle)
+    pygame.draw.rect(screen, WHITE, right_paddle)
+    pygame.draw.ellipse(screen, WHITE, ball)
 
+    # Display scores
+    font = pygame.font.Font(None, 36)
+    score_text = f"{left_score} - {right_score}"
+    text = font.render(score_text, True, WHITE)
+    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 20))
+
+def add_dynamic_mechanic():
+    function_code, summary = generate_ai_function(left_score + right_score)
+    if function_code:
+        # Load and execute the new mechanic
+        new_mechanic = load_function_from_code(function_code, "new_mechanic")
+        dynamic_mechanics.append(new_mechanic)  # Store the mechanic
+        print(summary)  # Display summary in the game
+        # Call the new mechanic if it’s callable
+        if callable(new_mechanic):
+            new_mechanic()  # Execute the new mechanic
+
+# General variable modification function for the AI
+def modify_variable(variable_name, new_value):
+    if variable_name in globals():
+        globals()[variable_name] = new_value
+    else:
+        print(f"Variable '{variable_name}' not found.")
+        
 # Game loop
 while True:
     for event in pygame.event.get():
@@ -113,18 +147,7 @@ while True:
 
     check_collisions()
     check_win()
-
-    # Drawing
-    screen.fill(BLACK)
-    pygame.draw.rect(screen, WHITE, left_paddle)
-    pygame.draw.rect(screen, WHITE, right_paddle)
-    pygame.draw.ellipse(screen, WHITE, ball)
-
-    # Display scores
-    font = pygame.font.Font(None, 36)
-    score_text = f"{left_score} - {right_score}"
-    text = font.render(score_text, True, WHITE)
-    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 20))
+    updateScreen()
 
     pygame.display.flip()
     pygame.time.Clock().tick(60)
