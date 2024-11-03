@@ -220,6 +220,14 @@ class GameClass:
             self.ball.x += self.direction[0] * abs(game.globals.ball_speed_x)
             self.ball.y += self.direction[1] *abs(game.globals.ball_speed_y)
 
+            # print("Paddle 1: ", self.left_paddle)
+            # print("Paddle 2: ", self.right_paddle)
+            # print("Ball: ", self.ball)
+            # print("Obstacles: ", self.game_obstacles)
+            # print("Ball Speed: ", game.globals.ball_speed_x, game.globals.ball_speed_y)
+            # print("Direction: ", self.direction)
+            # print("Functions: ", self.functions)
+
             # Drawing
             self.screen.blit(background, (0, 0))
             pygame.draw.rect(self.screen, self.paddle_color, self.left_paddle)

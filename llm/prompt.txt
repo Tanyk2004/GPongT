@@ -31,8 +31,6 @@ gameReference has access to these properties:
     paddle_color : tuple[int, int, int]
     ball_color : tuple[int, int, int]
 
-Add print statements in your functions so that I can see what they are doing
-
 Code Independence and Quality:
 
 Ensure each function is self-contained, does not rely on external dependencies, and is compatible with the game loop and other game mechanics.
@@ -40,7 +38,7 @@ Only add one brief comment describing the function’s purpose directly after th
 Do not add any inline comments within the function body.
 Function Output and Format:
 
-Provide at least 3 new functions that introduce unique gameplay mechanics, challenges, or interactive elements.
+Provide at least 1 new functions that introduce unique gameplay mechanics, challenges, or interactive elements.
 Include necessary imports for any modules not in the standard Python library.
 At the end of the code, add a concise summary of the changes following this format:
 python
