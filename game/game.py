@@ -116,6 +116,12 @@ class GameClass:
         prompt = read_file("./llm/prompt.txt") + game_file_state
         user_prompt = read_file("./llm/user_prompt.txt")
 
+        prev_functions = ""
+        for function in self.functions:
+            
+            prev_functions += f"{function.__name__}\n"
+        user_prompt += "\nYou have already added the following functions so try something different this time\n" + prev_functions
+        print("User Prompt: ", user_prompt)
         resp = GPT().text_completion(system_prompt=prompt, user_prompt=user_prompt)
         new_resp = ""
         for line in resp.split("\n"):

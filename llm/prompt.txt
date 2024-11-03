@@ -50,6 +50,11 @@ Do not have any lines THAT ARE NOT CODE that do not begin with a #
 Here are a few tips on what is a good improvement:
 Do not instantiate new objects based on a random number generator
 instantiate new objects objects if you want but make sure they do not go off screen
+You can change the speed of the ball or paddles
+You can change the size of the paddles
+You can add wind, gravity, or other forces to the ball
+You can add a wormhole that teleports the ball to a random location
+Try other variations as well don't restrict yourself to these options only
 
 # Summary: <insert summary here>
 Current Pong Game Code:
