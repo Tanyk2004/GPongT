@@ -1,3 +1,4 @@
+from typing import List
 from llm.config import OPENAI_KEY
 from openai import OpenAI
 
@@ -10,7 +11,7 @@ class GPT:
         self.api_key = OPENAI_KEY
         self.model = OpenAI(api_key=self.api_key)
 
-    def text_completion(self, prompt: str, max_tokens: int = 100) -> str:
+    def text_completion(self, user_prompt: str = "", system_prompt:str = "", tools: List = [], max_tokens: int = 100) -> str:
         """
         Get the text completion from the GPT model
 
@@ -25,8 +26,12 @@ class GPT:
             
         messages=[
             {
+                "role": "system",
+                "content": system_prompt,
+            },
+            {
                 "role": "user",
-                "content": prompt,
+                "content": user_prompt,
             }
         ],
         model="gpt-3.5-turbo",
@@ -59,7 +64,7 @@ class GPT:
                 "content": ""# TODO We need to add a function list here that GPT can call
             }
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         modalities=["text"],
         )
 
