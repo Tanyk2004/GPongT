@@ -37,26 +37,22 @@ winning_score = 5  # Set a winning score
 # functions for control
 def check_player_movement():
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_UP] and right_paddle.top > 0:
-        right_paddle.y -= paddle_speed
-    if keys[pygame.K_DOWN] and right_paddle.bottom < HEIGHT:
-        right_paddle.y += paddle_speed
+    if keys[pygame.K_w] and left_paddle.top > 0:
+        left_paddle.y -= paddle_speed
+    if keys[pygame.K_s] and left_paddle.bottom < HEIGHT:
+        left_paddle.y += paddle_speed
 
 def ai_movement():
     # AI Movement
-    if left_paddle.centery < ball.centery and left_paddle.bottom < HEIGHT:
-        left_paddle.y += paddle_speed
-    if left_paddle.centery > ball.centery and left_paddle.top > 0:
-        left_paddle.y -= paddle_speed
+    if right_paddle.centery < ball.centery and right_paddle.bottom < HEIGHT:
+        right_paddle.y += paddle_speed
+    if right_paddle.centery > ball.centery and right_paddle.top > 0:
+        right_paddle.y -= paddle_speed
 
 def check_collisions():
     global ball_speed_y, ball_speed_x, right_score, left_score
-    # Ball collision with top and bottom, with boundary correction
-    if ball.top <= 0:
-        ball.top = 0
-        ball_speed_y = -ball_speed_y
-    elif ball.bottom >= HEIGHT:
-        ball.bottom = HEIGHT
+    # Ball collision with top and bottom
+    if ball.top <= 0 or ball.bottom >= HEIGHT:
         ball_speed_y = -ball_speed_y
 
     # Ball collision with paddles
