@@ -1,6 +1,9 @@
 import pygame
 import sys
 import random
+from load import load_function_from_code
+from generator import generate_ai_function
+
 
 # Initialize Pygame
 pygame.init()
@@ -67,12 +70,13 @@ def check_collisions():
         ball_speed_x = -ball_speed_x
         increase_speed()
 
-    # Ball reset if it goes out of bounds
+    # Ball reset if it goes out of bounds, add dynamic
     if ball.left <= 0:
         right_score += 1
         reset_ball()
     elif ball.right >= WIDTH:
         left_score += 1
+        add_dynamic_mechanic()
         reset_ball()
 
 def check_win():
@@ -113,23 +117,23 @@ def updateScreen():
     text = font.render(score_text, True, WHITE)
     screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 20))
 
-def add_dynamic_mechanic():
-    function_code, summary = generate_ai_function(left_score + right_score)
-    if function_code:
-        # Load and execute the new mechanic
-        new_mechanic = load_function_from_code(function_code, "new_mechanic")
-        dynamic_mechanics.append(new_mechanic)  # Store the mechanic
-        print(summary)  # Display summary in the game
-        # Call the new mechanic if it’s callable
-        if callable(new_mechanic):
-            new_mechanic()  # Execute the new mechanic
-
 # General variable modification function for the AI
 def modify_variable(variable_name, new_value):
     if variable_name in globals():
         globals()[variable_name] = new_value
     else:
         print(f"Variable '{variable_name}' not found.")
+
+def add_dynamic_mechanic():
+    function_code, summary = generate_ai_function(left_score + right_score)
+    if function_code:
+        # Load and execute the new mechanic
+        new_mechanic = load_function_from_code(function_code, "new_mechanic")
+        dynamic_fns.append(new_mechanic)  # Store the mechanic
+        print(summary)  # Display summary in the game
+        # Call the new mechanic if it’s callable
+        if callable(new_mechanic):
+            new_mechanic()  # Execute the new mechanic
         
 # Game loop
 while True:

@@ -1,0 +1,25 @@
+New Mechanic Generated:
+Summary: Increased ur paddle speed by hella :)
+Code:
+def new_mechanic(): modify_variable(paddle_speed, 20)
+----------------------------------------
+New Mechanic Generated:
+Summary: Increased ur paddle speed by hella :)
+Code:
+def new_mechanic(): modify_variable(paddle_speed, 20)
+----------------------------------------
+New Mechanic Generated:
+Summary: Increased ur paddle speed by hella :)
+Code:
+def new_mechanic(): modify_variable(paddle_speed, 20)
+----------------------------------------
+New Mechanic Generated:
+Summary: Increased ur paddle speed by hella :)
+Code:
+def new_mechanic(): global[modify_variable](paddle_speed, 20)
+----------------------------------------
+New Mechanic Generated:
+Summary: Increased ur paddle speed by hella :)
+Code:
+def new_mechanic(): global['modify_variable'](paddle_speed, 20)
+----------------------------------------
