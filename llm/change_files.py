@@ -102,7 +102,8 @@ def get_summary(file_name):
     try:
         with open(file_name, 'r') as file:
             for line in file:
-                summary = file[-1]
+                if line.__contains__("Summary"):
+                    summary = line
                             
     except FileNotFoundError:
         print(f"File {file_name} not found.")

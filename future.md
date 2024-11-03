@@ -7,7 +7,9 @@
 ### Immediate next steps
 
 - working game objects
-- handle parameters in generated code
+    - handle parameters in generated code
+- pass in the existing state of gpt_generated_dynamic to the next prompt
+    - make it so that it prefers the previous stuff it has done
 
 ### Before Hackathon Ends
 
