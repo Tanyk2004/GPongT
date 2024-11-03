@@ -1,13 +1,13 @@
 import importlib
 import os
 import inspect
-from typing import List
+import game.globals
 
-def wildcard_function(*functions):
+def wildcard_function(*functions): 
     for function in functions:
         function()
 
-def load_and_execute_functions(module_name) -> List[function]:
+def load_and_execute_functions(module_name):
     """
     Loads all functions from a specified file and passes them to wildcard_function.
 

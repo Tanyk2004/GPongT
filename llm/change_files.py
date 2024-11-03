@@ -1,11 +1,11 @@
-def read_file(file_path: str):
+def read_file(file_path: str) -> str:
     """
         Read the file with the given file path
 
         @param file_path: The path to the file
 
     """
-    f = open(f"./{file_path}", "r")
+    f = open(f"{file_path}", "r")
     return f.read()
 
 def read_functions_from_file(file_name: str):
@@ -44,18 +44,11 @@ tools = [
     for line in file_lines:
         
         if "def" in line:
+            print(line)
             function_name = line.split("def ")[1].split("(")[0]
-            function_description = line.split("# description: ")[1]
+            # function_description = line.split("# description: ")[1]
             print(f"Function name: {function_name}")
-            parameters_list_raw = line.split("(")[1].split(")")[0].split(",")
-            print(f"Parameters: {parameters_list_raw}")
-            parameters_list = []
-            for parameter in parameters_list_raw:
-                parameter_name = parameter.split(":")[0]
-                parameter_type = parameter.split(":")[1]
-                parameters_list.append({"name": parameter_name, "type": parameter_type, "optional": "=" in parameter})
-            print(f"Parameters: {parameters_list}")
-
+            
     functions = []
 
     return functions
@@ -78,7 +71,55 @@ def write_to_python_file(content: str, file_name: str = "output.py"):
         print(f"Content successfully written to {file_name}")
     except Exception as e:
         print(f"An error occurred: {e}")
+  
+def append_to_python_file(content: str, file_name: str = "output.py"):
+    """
+    Appends the given content to a Python file.
+
+    Parameters:
+        content (str): The content to append to the file.
+        file_name (str): The name of the Python file to append to.
+                         Default is "output.py".
+
+    Returns:
+        None
+    """
+    try:
+        with open(file_name, "a") as file:
+            file.write(content)
+        print(f"Content successfully appended to {file_name}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+def get_summary(file_name):
+    """
+    Returns the summary line (if any) found in the file.
+    
+    The summary line follows the format:
+    # Summary: <summary goes here>
+    """
+    summary = ""
+    try:
+        with open(file_name, 'r') as file:
+            for line in file:
+                summary = file[-1]
+                            
+    except FileNotFoundError:
+        print(f"File {file_name} not found.")
+    
+    return summary
+
+
+def truncate_file(file_name: str):
+    """
+        Truncate the file with the given file name
+
+        @param file_name: The name of the file to be truncated
+
+    """
+    f = open(file_name, "w")
+    f.truncate()
+    f.close()
 
 if __name__ == "__main__":
     read_file("sample.py")
-    

@@ -10,8 +10,8 @@ Your code must follow this exact format for each function:
 ```
 
 Code Quality: Each function should be fully compatible with the existing game loop and other game mechanics. Only the initial comment is allowed, with no additional inline comments within the function body.
-Scope: Do not modify existing global variables or introduce any new ones. Don't reference GameClass at all. Your code should interact solely with the following constants and globals without using the global keyword. These functions will not be put into our existing class. Do not include "self" in the code.
-Constants (do not modify): `game.globals.max_ball_speed`, `GameClass.left_paddle.height`, `GameClass.right_paddle.height`
+Scope: Do not modify existing global variables or introduce any new ones. Your code should interact solely with the following constants and globals without using the global keyword. These functions will not be pyt into our existing class. Do not include "self" in the code.
+Constants (do not modify): `game.globals.max_ball_speed`
 Global variables (modifiable): `game.globals.paddle_speed`, `game.globals.ball_speed_x`, `game.globals.ball_speed_y`, `game.globals.speed_increase_factor`
 Code Independence: Each function must be self-contained and runnable, requiring no additional dependencies or modifications to existing code. All functions should work immediately when added to the game loop.
 Output Format:
@@ -24,4 +24,3 @@ Output Format:
 ```
 
 Current Pong Game Code:
-

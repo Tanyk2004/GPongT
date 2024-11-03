@@ -1,130 +1,190 @@
+import math
+import game.globals
 import pygame
 import sys
 import random
+from game.wildcard_functions import wildcard_function, load_and_execute_functions
+from llm.change_files import read_file, write_to_python_file, read_functions_from_file, append_to_python_file, get_summary
+from llm.gpt_api import GPT
 
-# Initialize Pygame
-pygame.init()
+class GameClass:
 
-# Set up display
-WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pong Game")
+    WIDTH, HEIGHT = 800, 600
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+    PADDLE_WIDTH, PADDLE_HEIGHT = 15, 100
+    BALL_SIZE = 15
+    def __init__(self):   
+        # Initialize Pygame
+        pygame.init()
 
-# Set up colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+        # Set up display
+        self.screen = pygame.display.set_mode((GameClass.WIDTH, GameClass.HEIGHT))
+        pygame.display.set_caption("Pong Game")
 
-# Paddle settings
-PADDLE_WIDTH, PADDLE_HEIGHT = 15, 100
-paddle_speed = 5
+        self.left_paddle = pygame.Rect(30, (GameClass.HEIGHT - GameClass.PADDLE_HEIGHT) // 2, GameClass.PADDLE_WIDTH, GameClass.PADDLE_HEIGHT)
+        self.right_paddle = pygame.Rect(GameClass.WIDTH - 30 - GameClass.PADDLE_WIDTH, (GameClass.HEIGHT - GameClass.PADDLE_HEIGHT) // 2, GameClass.PADDLE_WIDTH, GameClass.PADDLE_HEIGHT)
+        self.ball = pygame.Rect(GameClass.WIDTH // 2, GameClass.HEIGHT // 2, GameClass.BALL_SIZE, GameClass.BALL_SIZE)
+        self.functions = []
+        # Score tracking
+        self.left_score = 0
+        self.right_score = 0
+        self.winning_score = 5  # Set a winning score
+        self.direction = [1, 1]
+        self.current_text = ""
 
-# Ball settings
-BALL_SIZE = 15
-ball_speed_x, ball_speed_y = 3, 3
-speed_increase_factor = 0.5  # Amount to increase speed each collision
-max_ball_speed = 7           # Maximum speed cap for the ball
+    # functions for control
+    def check_player_movement(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP] and self.right_paddle.top > 0:
+            self.right_paddle.y -= game.globals.paddle_speed
+        if keys[pygame.K_DOWN] and self.right_paddle.bottom < GameClass.HEIGHT:
+            self.right_paddle.y += game.globals.paddle_speed
 
-# Create paddles and ball
-left_paddle = pygame.Rect(30, (HEIGHT - PADDLE_HEIGHT) // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
-right_paddle = pygame.Rect(WIDTH - 30 - PADDLE_WIDTH, (HEIGHT - PADDLE_HEIGHT) // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
-ball = pygame.Rect(WIDTH // 2, HEIGHT // 2, BALL_SIZE, BALL_SIZE)
+    def ai_movement(self):
+        # AI Movement
+        if self.left_paddle.centery < self.ball.centery and self.left_paddle.bottom < self.HEIGHT:
+            self.left_paddle.y += game.globals.paddle_speed
+        if self.left_paddle.centery > self.ball.centery and self.left_paddle.top > 0:
+            self.left_paddle.y -= game.globals.paddle_speed
 
-# Score tracking
-left_score = 0
-right_score = 0
-winning_score = 5  # Set a winning score
+    def check_collisions(self):
+        # Ball collision with top and bottom, with boundary correction
+        if self.ball.top <= 0:
+            self.ball.top = 0
+            # game.globals.ball_speed_y = -game.globals.ball_speed_y
+            self.direction[1] = -self.direction[1]
+        elif self.ball.bottom >= GameClass.HEIGHT:
+            self.ball.bottom = GameClass.HEIGHT
+            # game.globals.ball_speed_y = -game.globals.ball_speed_y
+            self.direction[1] = -self.direction[1]
 
-# functions for control
-def check_player_movement():
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_UP] and right_paddle.top > 0:
-        right_paddle.y -= paddle_speed
-    if keys[pygame.K_DOWN] and right_paddle.bottom < HEIGHT:
-        right_paddle.y += paddle_speed
+        # Ball collision with paddles
+        if self.ball.colliderect(self.left_paddle) or self.ball.colliderect(self.right_paddle):
+            # game.globals.ball_speed_x = -game.globals.ball_speed_x
+            self.direction[0] = -self.direction[0]
+            self.increase_speed()
 
-def ai_movement():
-    # AI Movement
-    if left_paddle.centery < ball.centery and left_paddle.bottom < HEIGHT:
-        left_paddle.y += paddle_speed
-    if left_paddle.centery > ball.centery and left_paddle.top > 0:
-        left_paddle.y -= paddle_speed
+        point_scored = False
+        # Ball reset if it goes out of bounds
+        if self.ball.left <= 0:
+            self.right_score += 1
+            point_scored = True
+        elif self.ball.right >= GameClass.WIDTH:
+            self.left_score += 1
+            point_scored = True
+        
+        if (point_scored):
+            self.reset_ball()
+            #this might be asynch, what do?
+            self.llm_call()
 
-def check_collisions():
-    global ball_speed_y, ball_speed_x, right_score, left_score
-    # Ball collision with top and bottom, with boundary correction
-    if ball.top <= 0:
-        ball.top = 0
-        ball_speed_y = -ball_speed_y
-    elif ball.bottom >= HEIGHT:
-        ball.bottom = HEIGHT
-        ball_speed_y = -ball_speed_y
+    # TODO: refactor by putting this into the gpt_api class
+    def llm_call(self):
+        #make the llm generate a function and update gpt_gen_dy (is this asynch)
+        game_file_state = read_file("./game/game.py")
+        prompt = read_file("./llm/prompt.txt") + game_file_state
+        user_prompt = read_file("./llm/user_prompt.txt")
 
-    # Ball collision with paddles
-    if ball.colliderect(left_paddle) or ball.colliderect(right_paddle):
-        ball_speed_x = -ball_speed_x
-        increase_speed()
+        resp = GPT().text_completion(system_prompt=prompt, user_prompt=user_prompt)
+        print(resp)
+        new_resp = ""
+        for line in resp.split("\n"):
+            if '```' not in line:
+                new_resp += line + "\n"
+        new_resp = "\n" + new_resp
+        append_to_python_file(new_resp, "game/gpt_generated_dynamic.py")
+        self.current_text = get_summary("./game/gpt_generated_dynamic.py")
+        
+        #load newly generated function (asynch ???)
+        # TODO: maybe we can load and store one at a time instead of all every time?
+        self.functions = load_and_execute_functions("game.gpt_generated_dynamic")
 
-    # Ball reset if it goes out of bounds
-    if ball.left <= 0:
-        right_score += 1
-        reset_ball()
-    elif ball.right >= WIDTH:
-        left_score += 1
-        reset_ball()
+    def display_summary_message(self, summary_text):  # Displays a message on the screen for a set duration
+        font = pygame.font.Font(None, 24)
+        max_width = GameClass.WIDTH - 40
+        lines = []
+        words = summary_text.split()
+        current_line = ""
+        for word in words:
+            test_line = current_line + " " + word
+            text_surface = font.render(test_line, True, GameClass.WHITE)
+            if text_surface.get_width() < max_width:
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word + " "
+        lines.append(current_line)
 
-def check_win():
-    # Check for winning condition
-    if left_score >= winning_score:
-        print("Left Player Wins!")
-        pygame.quit()
-        sys.exit()
-    elif right_score >= winning_score:
-        print("Right Player Wins!")
-        pygame.quit()
-        sys.exit()
+        y_offset = GameClass.HEIGHT - 60 - (len(lines) - 1) * 24
+        for line in lines:
+            text = font.render(line, True, GameClass.WHITE)
+            self.screen.blit(text, (GameClass.WIDTH // 2 - text.get_width() // 2, y_offset))
+            y_offset += 24
+        pygame.display.flip()
 
-def increase_speed():
-    global ball_speed_x, ball_speed_y
-    if abs(ball_speed_x) < max_ball_speed:
-        ball_speed_x += speed_increase_factor * (1 if ball_speed_x > 0 else -1)
-    if abs(ball_speed_y) < max_ball_speed:
-        ball_speed_y += speed_increase_factor * (1 if ball_speed_y > 0 else -1)
-
-def reset_ball():
-    global ball_speed_x, ball_speed_y
-    ball.x, ball.y = WIDTH // 2, HEIGHT // 2
-    # Reset speed with a random direction
-    ball_speed_x = 3 * random.choice((1, -1))
-    ball_speed_y = 3 * random.choice((1, -1))
-
-# Game loop
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    def check_win(self):
+        # Check for winning condition
+        if self.left_score >= self.winning_score:
+            print("Left Player Wins!")
+            pygame.quit()
+            sys.exit()
+        elif self.right_score >= self.winning_score:
+            print("Right Player Wins!")
             pygame.quit()
             sys.exit()
 
-    check_player_movement()
-    ai_movement()
-    
-    # Ball movement
-    ball.x += ball_speed_x
-    ball.y += ball_speed_y
+    def increase_speed(self):
+        
+        if abs(game.globals.ball_speed_x) < game.globals.max_ball_speed:
+            game.globals.ball_speed_x += game.globals.speed_increase_factor * (1 if game.globals.ball_speed_x > 0 else -1)
+        if abs(game.globals.ball_speed_y) < game.globals.max_ball_speed:
+            game.globals.ball_speed_y += game.globals.speed_increase_factor * (1 if game.globals.ball_speed_y > 0 else -1)
 
-    check_collisions()
-    check_win()
+    def reset_ball(self):
+        self.ball.x, self.ball.y = GameClass.WIDTH // 2, GameClass.HEIGHT // 2
+        # Reset speed with a random direction
+        game.globals.ball_speed_x = 3 * random.choice((1, -1))
+        game.globals.ball_speed_y = 3 * random.choice((1, -1))
 
-    # Drawing
-    screen.fill(BLACK)
-    pygame.draw.rect(screen, WHITE, left_paddle)
-    pygame.draw.rect(screen, WHITE, right_paddle)
-    pygame.draw.ellipse(screen, WHITE, ball)
+    def entry_point(self):
+        #load gpt added function before game loop
+        
+        # Game loop
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            
+            for function in self.functions:
+                try:
+                    function()
+                except Exception as e:
+                    self.functions.remove(function)
 
-    # Display scores
-    font = pygame.font.Font(None, 36)
-    score_text = f"{left_score} - {right_score}"
-    text = font.render(score_text, True, WHITE)
-    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, 20))
+            self.check_player_movement()
+            self.ai_movement()
+            
+            # Ball movement
+            self.ball.x += self.direction[0] * abs(game.globals.ball_speed_x)
+            self.ball.y += self.direction[1] *abs(game.globals.ball_speed_y)
 
-    pygame.display.flip()
-    pygame.time.Clock().tick(60)
+            self.check_collisions()
+            self.check_win()
+
+            # Drawing
+            self.screen.fill(GameClass.BLACK)
+            pygame.draw.rect(self.screen, GameClass.WHITE, self.left_paddle)
+            pygame.draw.rect(self.screen, GameClass.WHITE, self.right_paddle)
+            pygame.draw.ellipse(self.screen, GameClass.WHITE, self.ball)
+
+            # Display scores
+            font = pygame.font.Font(None, 36)
+            score_text = f"{self.left_score} - {self.right_score}"
+            text = font.render(score_text, True, GameClass.WHITE)
+            self.screen.blit(text, (GameClass.WIDTH // 2 - text.get_width() // 2, 20))
+            self.display_summary_message(self.current_text)
+
+            pygame.display.flip()
+            pygame.time.Clock().tick(60)
