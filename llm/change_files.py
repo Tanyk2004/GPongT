@@ -93,22 +93,26 @@ def append_to_python_file(content: str, file_name: str = "output.py"):
 
 def get_summary(file_name):
     """
-    Returns the summary line (if any) found in the file.
-    
-    The summary line follows the format:
-    # Summary: <summary goes here>
+    Returns the summary text starting from the # Summary line and including all subsequent lines.
     """
     summary = ""
+    
     try:
         with open(file_name, 'r') as file:
-            for line in file:
-                if line.__contains__("Summary"):
-                    summary = line
-                            
+          file_content = file.read()
+          file_lines = file_content.split("\n")
+          last_index = -1
+          for line_number in range(len(file_lines)):
+            if file_lines[line_number].startswith("# Summary:"):
+              last_index = line_number 
+
+          if last_index != -1:
+              summary = "\n".join(file_lines[last_index:])          
+
     except FileNotFoundError:
         print(f"File {file_name} not found.")
     
-    return summary
+    return summary.strip().split("# Summary:")[1]
 
 
 def truncate_file(file_name: str):

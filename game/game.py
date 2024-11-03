@@ -8,13 +8,16 @@ from llm.change_files import read_file, write_to_python_file, read_functions_fro
 from llm.gpt_api import GPT
 
 class GameClass:
-
+    
     WIDTH, HEIGHT = 800, 600
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     PADDLE_WIDTH, PADDLE_HEIGHT = 15, 100
     BALL_SIZE = 15
     def __init__(self):   
+        """
+        Initializes the game by setting up the display, paddles, ball, and other game variables.
+        """
         # Initialize Pygame
         pygame.init()
 
