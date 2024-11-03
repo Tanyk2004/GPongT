@@ -7,5 +7,5 @@ max_ball_speed = 7
 tick_number = 0
 
 g = None
-
+screen = None
 

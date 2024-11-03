@@ -1,27 +1,55 @@
-You are an expert software engineer specializing in game development. Your task is to enhance a Pong game written in Python using pygame, making the gameplay more challenging and interesting. We are providing the current implementation of the game, and you will contribute new functions that add difficulty and depth.
+You are an expert software engineer specializing in game development. Your task is to enhance a Pong game written in Python using Pygame, making the gameplay more challenging and interesting. We are providing the current implementation of the game, and you will contribute new functions that add difficulty, dynamic effects, or unique interactions.
 
 Instructions:
 
-Only respond with code that compiles successfully without any bugs.
-Your code must follow this exact format for each function:
+1. **Output Code Only**: Only respond with code that compiles successfully without any bugs. Each function should follow this exact format:
 
-```def function_name():  # Brief description of the function’s purpose
-    # code body
-```
+   ```python
+   def function_name(gameReference):  # Brief description of the function's purpose
+       # code body
+Interaction with Game State:
 
-Code Quality: Each function should be fully compatible with the existing game loop and other game mechanics. Only the initial comment is allowed, with no additional inline comments within the function body.
-Scope: Do not modify existing global variables or introduce any new ones. Don't reference GameClass at all. Your code should interact solely with the following constants and globals without using the global keyword. These functions will not be put into our existing class. Do not include "self" in the code.
-Constants (do not modify): `game.globals.max_ball_speed`, `GameClass.left_paddle.height`, `GameClass.right_paddle.height`
-Global variables (modifiable): `game.globals.paddle_speed`, `game.globals.ball_speed_x`, `game.globals.ball_speed_y`, `game.globals.speed_increase_factor`
-Code Independence: Each function must be self-contained and runnable, requiring no additional dependencies or modifications to existing code. All functions should work immediately when added to the game loop.
-Output Format:
+Each function accepts a gameReference parameter, which provides access to the game’s state. Use gameReference to interact with game objects (e.g., ball, paddles) and access or modify instance variables.
+Do not introduce new parameters in the function or reference self or GameClass directly.
+Example of using gameReference:
+python
+Copy code
+def example_function(gameReference):  # Example function
+    gameReference.left_paddle.y += 5  # Move left paddle down by 5 pixels
+Allowed Variables and Constants:
 
-* Provide at least 3 new functions that add unique mechanics, challenges, or difficulty.
-* Include necessary imports for any modules that are not part of the standard Python library.
-* At the end of the file, give a concise summary following this exact format:
+Constants (read-only): game.globals.max_ball_speed, gameReference.left_paddle.height, gameReference.right_paddle.height
+Global variables (modifiable): game.globals.paddle_speed, game.globals.ball_speed_x, game.globals.ball_speed_y, game.globals.speed_increase_factor
+gameReference has access to these properties:
+    screen : Pygame display surface
+    left_paddle : Pygame Rect
+    right_paddle : Pygame Rect
+    ball : Pygame Ball
+    left_score : int
+    right_score : int
+    winning_score : int
+    paddle_color : tuple[int, int, int]
+    ball_color : tuple[int, int, int]
 
-```# Summary: <insert summary here>
-```
+Add print statements in your functions so that I can see what they are doing
 
+Code Independence and Quality:
+
+Ensure each function is self-contained, does not rely on external dependencies, and is compatible with the game loop and other game mechanics.
+Only add one brief comment describing the function’s purpose directly after the function signature.
+Do not add any inline comments within the function body.
+Function Output and Format:
+
+Provide at least 3 new functions that introduce unique gameplay mechanics, challenges, or interactive elements.
+Include necessary imports for any modules not in the standard Python library.
+At the end of the code, add a concise summary of the changes following this format:
+python
+
+When you include comments make sure they begin with a # 
+
+Here are a few tips on what is a good improvement:
+Do not instantiate new objects based on a random number generator
+instantiate new objects objects if you want but make sure they do not go off screen
+
+# Summary: <insert summary here>
 Current Pong Game Code:
-

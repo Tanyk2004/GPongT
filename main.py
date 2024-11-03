@@ -4,6 +4,7 @@ from llm.change_files import read_file, write_to_python_file, read_functions_fro
 # import game.globals
 # from llm.change_files import get_summary
 from game.game import GameClass
+import pygame
 
 # # Example usage
 # code = """def greet():
@@ -22,10 +23,12 @@ if __name__ == "__main__":
     #         new_resp += line + "\n"
     # print(new_resp)
 
-    # * Actual Main 
+    # * Actual Main
     truncate_file("game/gpt_generated_dynamic.py")
-    write_to_python_file("import game.globals\nimport random\nimport pygame\n", "game/gpt_generated_dynamic.py")
+    write_to_python_file("import game.globals\nimport random\nimport pygame\nfrom game.game import GameClass\n",
+                          "game/gpt_generated_dynamic.py")
     g = GameClass()
+
     g.entry_point()
 
     # game_file_state = read_file("./game/game.py")
