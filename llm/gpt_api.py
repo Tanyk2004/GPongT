@@ -37,7 +37,6 @@ class GPT:
         model="gpt-4o",
         modalities=["text"],
         )
-
         response_message = chat_completion.choices[0].message.content
         return response_message
     

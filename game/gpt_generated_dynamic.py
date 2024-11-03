@@ -2,216 +2,125 @@ import game.globals
 import random
 import pygame
 from game.game import GameClass
+import math
 
-def random_obstacle_spawner(gameReference):  # Spawns intermittent barriers on the screen.
-    if not hasattr(gameReference, "obstacle_timer"):
-        gameReference.obstacle_timer = 0
-    if not hasattr(gameReference, "obstacle_direction"):
-        gameReference.obstacle_direction = random.choice([-1, 1])
+def change_paddle_size_based_on_score(gameReference):  # Change paddle sizes based on score difference to increase difficulty
+    score_difference = abs(gameReference.left_score - gameReference.right_score)
+    new_paddle_height = max(20, gameReference.left_paddle.height - score_difference * 5)
 
-    obstacle_speed = 2
-    gameReference.obstacle_timer += 1
+    gameReference.left_paddle = pygame.Rect(
+        gameReference.left_paddle.x, 
+        gameReference.left_paddle.y, 
+        gameReference.left_paddle.width, 
+        new_paddle_height
+    )
 
-    # Every 5 seconds, introduce a new obstacle
-    if gameReference.obstacle_timer == 300:
-        obstacle_height = random.randint(50, 100)
-        new_obstacle = pygame.Rect(
-            random.choice([GameClass.WIDTH // 2 - 200, GameClass.WIDTH // 2 + 200]),
-            random.randint(50, GameClass.HEIGHT - obstacle_height - 50),
-            GameClass.PADDLE_WIDTH,
-            obstacle_height
-        )
-        gameReference.game_obstacles.append(new_obstacle)
-        print(f"Obstacle spawned at: {new_obstacle}")
-        gameReference.obstacle_timer = 0
+    gameReference.right_paddle = pygame.Rect(
+        gameReference.right_paddle.x, 
+        gameReference.right_paddle.y, 
+        gameReference.right_paddle.width, 
+        new_paddle_height
+    )
 
-    for obstacle in gameReference.game_obstacles:
-        obstacle.x += gameReference.obstacle_direction * obstacle_speed
+# Summary: Added a function to dynamically change the paddles' Height based on the score difference between the two players. This change makes gameplay more challenging as it becomes harder to hit the ball with smaller paddles as the score difference increases.
 
-        # Bounce the obstacle off the side walls
-        if obstacle.left < 0 or obstacle.right > GameClass.WIDTH:
-            gameReference.obstacle_direction = -gameReference.obstacle_direction
+import random
+import pygame
 
-        # If collision with ball occurs
-        if gameReference.ball.colliderect(obstacle):
-            gameReference.direction[0] = -gameReference.direction[0]
-            print(f"Collision with obstacle at: {obstacle}")
-
-# Summary: Introduced a `random_obstacle_spawner` function that spawns obstacles randomly on the field every 5 seconds. The obstacles move horizontally and can cause collisions with the ball, making the game more challenging by introducing erratic ball behavior when it hits one of these obstacles.
-
-def surprise_obstacles(gameReference):  # Introduces randomly appearing obstacles on the field to make gameplay harder
-    print("Adding surprise obstacles")
-    if len(gameReference.game_obstacles) < 4:
-        obstacle_width, obstacle_height = 20, 100
-        new_obstacle = pygame.Rect(
-            random.randint(200, GameClass.WIDTH - 200), random.randint(0, GameClass.HEIGHT - obstacle_height),
-            obstacle_width, obstacle_height
-        )
-        gameReference.game_obstacles.append(new_obstacle)
-
-    for obstacle in gameReference.game_obstacles:
-        if gameReference.ball.colliderect(obstacle):
-            print("Ball hits obstacle!")
-            gameReference.direction[0] = -gameReference.direction[0]
-            gameReference.direction[1] = -gameReference.direction[1]
-
-        if gameReference.left_paddle.colliderect(obstacle):
-            print("Left paddle crashes into obstacle!")
-            gameReference.left_score -= 1
-            gameReference.game_obstacles.remove(obstacle)
-
-        if gameReference.right_paddle.colliderect(obstacle):
-            print("Right paddle crashes into obstacle!")
-            gameReference.right_score -= 1
-            gameReference.game_obstacles.remove(obstacle)
-
-# Summary: Added a function to introduce surprise obstacles on the field which the ball and paddles can collide with. This increases difficulty by randomizing obstacle locations during gameplay, adding elements that players need to avoid, while also impacting scores upon collisions.
-
-def introduce_obstacles(gameReference):  # Adds moving obstacles on the playing field
-    if len(gameReference.game_obstacles) == 0:
-        # Introduce a new obstacle only if none exists
-        obstacle_width = 60
-        obstacle_height = 20
-        obstacle = pygame.Rect((gameReference.WIDTH - obstacle_width) // 2, (gameReference.HEIGHT - obstacle_height) // 2, obstacle_width, obstacle_height)
-        gameReference.game_obstacles.append(obstacle)
-    for obstacle in gameReference.game_obstacles:
-        obstacle.y += 2
-        if obstacle.top <= 0 or obstacle.bottom >= gameReference.HEIGHT:
-            obstacle.y *= -1
-        if gameReference.ball.colliderect(obstacle):
-            gameReference.ball.y *= -1  # Change ball's Y direction on collision
-        if obstacle.bottom > gameReference.HEIGHT or obstacle.top < 0:
-            obstacle.y *= -1  # Reverse direction when hitting top/bottom of screen
-    print(f"Obstacles: {gameReference.game_obstacles}")
-
-# Summary: Introduced obstacles that move vertically on the screen. When the ball hits an obstacle, its vertical direction reverses, adding an additional challenge to the game.
-
-def add_obstacle(gameReference):  # Introduces a moving obstacle in the middle of the screen that bounces the ball
-    if not gameReference.game_obstacles:
-        print("Adding an obstacle!")
-        obstacle_width = 20
-        obstacle_height = 150
-        obstacle_x = (gameReference.WIDTH - obstacle_width) // 2
-        obstacle_y = (gameReference.HEIGHT - obstacle_height) // 2
-        moving_obstacle = pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height)
-        gameReference.game_obstacles.append(moving_obstacle)
-        gameReference.obstacle_direction = [1, 1]
-
-    for obstacle in gameReference.game_obstacles:
-        obstacle.y += gameReference.obstacle_direction[1] * 2
-
-        if obstacle.top <= 0 or obstacle.bottom >= gameReference.HEIGHT:
-            gameReference.obstacle_direction[1] = -gameReference.obstacle_direction[1]
-
-        if gameReference.ball.colliderect(obstacle):
-            print("Ball collided with the obstacle!")
-            gameReference.direction[0] = -gameReference.direction[0]
-            gameReference.increase_speed()
-
-# Summary: Added a function `add_obstacle` that places a moving rectangular obstacle in the middle of the screen. The obstacle moves vertically and bounces the ball back, increasing the ball’s speed upon collision. This makes the game more challenging by adding another dynamic element that players must account for.
-
-def moving_barrier(gameReference):  # Introduces a moving barrier on the field
-    barrier_width, barrier_height = 15, 120
-    barrier_speed = 2
-
-    if not hasattr(gameReference, 'barrier'):
-        gameReference.barrier = pygame.Rect((GameClass.WIDTH - barrier_width) // 2, (GameClass.HEIGHT - barrier_height) // 2, barrier_width, barrier_height)
-        gameReference.barrier_direction = 1
-
-    gameReference.barrier.y += barrier_speed * gameReference.barrier_direction
-
-    if gameReference.barrier.top <= 0 or gameReference.barrier.bottom >= GameClass.HEIGHT:
-        gameReference.barrier_direction *= -1
-
-    if gameReference.ball.colliderect(gameReference.barrier):
-        print("Ball hit the barrier!")
-        gameReference.direction[0] = -gameReference.direction[0]
-    
-    pygame.draw.rect(gameReference.screen, GameClass.GRAY, gameReference.barrier)
-
-# Summary: Added a moving barrier that travels up and down the field, potentially blocking the ball's path and making the game more challenging. The barrier's direction inverts when it hits the top or bottom edge of the game area.
-
-
-def add_moving_obstacles(gameReference):  # Introduces moving obstacles that make the game more challenging
-    obstacle_width, obstacle_height = 20, 20
-    speed = 5
-
-    # Ensure only specific number of obstacles are present, and if not, add one
-    if len(gameReference.game_obstacles) < 3:
-        new_obstacle = pygame.Rect(random.randint(100, GameClass.WIDTH - 100), random.randint(100, GameClass.HEIGHT - 100), obstacle_width, obstacle_height)
-        gameReference.game_obstacles.append(new_obstacle)
-        print("New obstacle added at:", new_obstacle)
-
-    # Move each obstacle and ensure they bounce off the walls
-    for obstacle in gameReference.game_obstacles:
-        obstacle.y += speed
-
-        if obstacle.top <= 0 or obstacle.bottom >= GameClass.HEIGHT:
-            speed = -speed
-            print("Obstacle bouncing back due to hitting the boundary:", obstacle)
-
-        # Check collision with ball
-        if gameReference.ball.colliderect(obstacle):
-            gameReference.direction[1] = -gameReference.direction[1]
-            gameReference.direction[0] *= -1
-            print("Ball collision with obstacle:", obstacle)
-
-        # Remove obstacles that went off screen for any reason
-        if obstacle.x < 0 or obstacle.x > GameClass.WIDTH or obstacle.y < 0 or obstacle.y > GameClass.HEIGHT:
-            gameReference.game_obstacles.remove(obstacle)
-            print("Obstacle removed:", obstacle)
-
-# Summary: Introduced moving obstacles in the game that continuously bounce vertically between boundaries. The obstacles increase the game’s difficulty by adding an additional layer of interaction with the ball. The ball's direction is changed when a collision with an obstacle occurs.
-
-def introduce_moving_obstacles(gameReference):  # Introduces moving obstacles to hinder ball movement
+def introduce_moving_obstacle(gameReference):  # Introduces a moving obstacle in the middle of the screen
     obstacle_width = 20
-    obstacle_height = 60
-    speed = 5
-
-    obstacle = pygame.Rect(random.randint(20, gameReference.WIDTH - 40), random.randint(20, gameReference.HEIGHT - 80), obstacle_width, obstacle_height)
-    gameReference.game_obstacles.append(obstacle)
-
-    move_in_y_direction = random.choice([True, False])
-
-    def move_obstacle():
-        if move_in_y_direction:
-            obstacle.y += speed if obstacle.y + speed < gameReference.HEIGHT - obstacle_height else -speed
-        else:
-            obstacle.x += speed if obstacle.x + speed < gameReference.WIDTH - obstacle_width else -speed
-
-    move_obstacle()
+    obstacle_height = 100
+    max_obstacles = 3
+    if len(gameReference.game_obstacles) < max_obstacles:
+        new_obstacle = pygame.Rect((gameReference.WIDTH - obstacle_width) // 2, random.randint(0, gameReference.HEIGHT - obstacle_height), obstacle_width, obstacle_height)
+        gameReference.game_obstacles.append(new_obstacle)
 
     for obstacle in gameReference.game_obstacles:
-        if obstacle.colliderect(gameReference.ball):
-            print("Ball collided with obstacle!")
-            gameReference.direction[0] = -gameReference.direction[0]
-            gameReference.direction[1] = -gameReference.direction[1]
+        # Move obstacles up and down
+        if isinstance(obstacle, pygame.Rect):
+            obstacle.y += random.choice([-2, 2])
+            if obstacle.top <= 0 or obstacle.bottom >= gameReference.HEIGHT:
+                obstacle.y -= 4  # Change direction if it hits the screen boundaries
 
-# Summary: Added a new function `introduce_moving_obstacles` introducing moving obstacles on the game field that collide with the ball, reversing its direction, making the game more challenging and dynamic.
+# Summary: Introduced a moving obstacle into the Pong game that randomly moves up and down in the middle of the screen, making it harder to score by introducing additional collision possibilities.
 
-def add_moving_obstacle(gameReference):  # Add a moving obstacle that the ball must avoid
-    if len(gameReference.game_obstacles) == 0:
+def add_moving_obstacle(gameReference):  # Adds a moving obstacle that moves horizontally across the screen
+    obstacle_width = 15
+    obstacle_height = 100
+    obstacle_starting_x = gameReference.WIDTH // 4
+    obstacle_speed = 5
+
+    # Initialize obstacle if it doesn't exist
+    if not hasattr(gameReference, 'moving_obstacle'):
+        gameReference.moving_obstacle = pygame.Rect(obstacle_starting_x, (gameReference.HEIGHT - obstacle_height) // 2, obstacle_width, obstacle_height)
+        gameReference.obstacle_direction = 1
+
+    # Update obstacle position
+    gameReference.moving_obstacle.x += obstacle_speed * gameReference.obstacle_direction
+    if gameReference.moving_obstacle.right >= gameReference.WIDTH - obstacle_starting_x or gameReference.moving_obstacle.left <= obstacle_starting_x:
+        gameReference.obstacle_direction *= -1
+
+    # Draw the moving obstacle
+    pygame.draw.rect(gameReference.screen, (255, 0, 0), gameReference.moving_obstacle)
+
+# Summary: Introduced a new gameplay mechanic by adding a moving horizontal obstacle. The obstacle moves back and forth across the screen, creating additional difficulty for players as they have to avoid it while rallying the ball.
+
+def add_random_obstacles(gameReference):  # Adds random obstacles to increase game difficulty
+    if len(gameReference.game_obstacles) < 3:  # Limit the number of obstacles on the screen
         obstacle_width = 20
-        obstacle_height = 100
-        starting_x = (gameReference.WIDTH - obstacle_width) // 2
-        starting_y = (gameReference.HEIGHT - obstacle_height) // 2
-        gameReference.game_obstacles.append(pygame.Rect(starting_x, starting_y, obstacle_width, obstacle_height))
-    
-    for obstacle in gameReference.game_obstacles:
-        obstacle.y += 5 * gameReference.direction[1]
-
-        if obstacle.top <= 0 or obstacle.bottom >= gameReference.HEIGHT:
-            gameReference.direction[1] *= -1
-
-        if gameReference.ball.colliderect(obstacle):
-            print("Collision with obstacle!")
-            gameReference.direction[0] = -gameReference.direction[0]  # Reverse ball direction
-            
-            gameReference.increase_speed()  # Increase speed to make the game more challenging
-            
-            gameReference.ball.x += gameReference.direction[0] * abs(gameReference.globals.ball_speed_x)
-            gameReference.ball.y += gameReference.direction[1] * abs(gameReference.globals.ball_speed_y)
+        obstacle_height = random.randint(50, 150)
+        obstacle_x = random.randint(GameClass.WIDTH // 4, GameClass.WIDTH * 3 // 4)
+        obstacle_y = random.randint(50, GameClass.HEIGHT - 50 - obstacle_height)
+        new_obstacle = pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height)
+        gameReference.game_obstacles.append(new_obstacle)
         
-        print(f"Obstacle position: (x: {obstacle.x}, y: {obstacle.y})")
+    # Optional: Refresh obstacles periodically
+    if random.randint(0, 500) == 1:  # Randomly remove an obstacle and potentially add a new one
+        gameReference.game_obstacles.pop(random.randint(0, len(gameReference.game_obstacles) - 1))
+        new_obstacle_width = 20
+        new_obstacle_height = random.randint(50, 150)
+        new_obstacle_x = random.randint(GameClass.WIDTH // 4, GameClass.WIDTH * 3 // 4)
+        new_obstacle_y = random.randint(50, GameClass.HEIGHT - 50 - new_obstacle_height)
+        new_obstacle = pygame.Rect(new_obstacle_x, new_obstacle_y, new_obstacle_width, new_obstacle_height)
+        gameReference.game_obstacles.append(new_obstacle)
 
-# Summary: Introduced a moving obstacle that interacts with the ball and increases the game's difficulty and complexity.
+# Summary: Added `add_random_obstacles` function to introduce dynamic obstacles that periodically change, increasing the game difficulty and keeping the gameplay fresh.
+
+def introduce_moving_obstacle(gameReference):  # Introduce a moving obstacle that bounces up and down
+    if not hasattr(gameReference, 'obstacle_position'):
+        gameReference.obstacle_position = [GameClass.WIDTH // 2, GameClass.HEIGHT * 0.3]
+        gameReference.obstacle_movement = 3  # initial speed of obstacle
+    
+    gameReference.obstacle_position[1] += gameReference.obstacle_movement
+    
+    if gameReference.obstacle_position[1] <= 0 or gameReference.obstacle_position[1] >= GameClass.HEIGHT - 20:
+        gameReference.obstacle_movement *= -1
+
+    moving_obstacle = pygame.Rect(gameReference.obstacle_position[0], gameReference.obstacle_position[1], 20, 100)
+
+    gameReference.game_obstacles.append(moving_obstacle)
+    
+    # Draw the obstacle
+    pygame.draw.rect(gameReference.screen, GameClass.RED, moving_obstacle)
+    
+    # Check collision with the ball
+    if gameReference.ball.colliderect(moving_obstacle):
+        gameReference.direction[0] = -gameReference.direction[0]
+        gameReference.increase_speed()
+
+
+# Summary: Introduced a moving vertical obstacle in the center of the game, making it harder to score points by requiring players to avoid collision with the obstacle. This obstacle bounces up and down, adding an extra layer of challenge. 
+
+def spawn_obstacle(gameReference):  # Introduce random obstacles in the game area
+    obstacle_width = 15
+    obstacle_height = random.randint(50, 150)
+    x_position = random.choice([random.randint(100, 300), random.randint(500, 700)])
+    y_position = random.randint(50, gameReference.HEIGHT - obstacle_height - 50)
+    
+    new_obstacle = pygame.Rect(x_position, y_position, obstacle_width, obstacle_height)
+    
+    gameReference.game_obstacles.append(new_obstacle)
+    if len(gameReference.game_obstacles) > 3:  # limit the number of obstacles
+        gameReference.game_obstacles.pop(0)
+
+# Summary: Added a function `spawn_obstacle` that introduces randomly sized obstacles in random positions in the game area to make the game more challenging, limiting the number of obstacles to a maximum of 3.

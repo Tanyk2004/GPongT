@@ -13,6 +13,7 @@ Each function accepts a gameReference parameter, which provides access to the ga
 Do not introduce new parameters in the function or reference self or GameClass directly.
 Example of using gameReference:
 python
+
 Copy code
 def example_function(gameReference):  # Example function
     gameReference.left_paddle.y += 5  # Move left paddle down by 5 pixels

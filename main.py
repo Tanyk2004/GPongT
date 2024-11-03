@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # * Actual Main
     truncate_file("game/gpt_generated_dynamic.py")
-    import_string = "import game.globals\nimport random\nimport pygame\nfrom game.game import GameClass\n"
+    import_string = "import game.globals\nimport random\nimport pygame\nfrom game.game import GameClass\nimport math\n"
     write_to_python_file(import_string,
                           "game/gpt_generated_dynamic.py")
     g = GameClass()

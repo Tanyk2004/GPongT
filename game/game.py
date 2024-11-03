@@ -79,7 +79,15 @@ class GameClass:
             # game.globals.ball_speed_x = -game.globals.ball_speed_x
             self.direction[0] = -self.direction[0]
             self.increase_speed()
-        
+        for obstacle in self.game_obstacles:
+            if obstacle is not None and self.ball.colliderect(obstacle):
+                if isinstance(obstacle, pygame.Rect):
+                    if self.ball.left < obstacle.right and self.ball.right > obstacle.left:
+                        self.direction[0] = -self.direction[0]
+                else:
+                    self.direction[1] = -self.direction[1]
+                self.increase_speed()        
+
         point_scored = False
         # Ball reset if it goes out of bounds
         if self.ball.left <= 0:
